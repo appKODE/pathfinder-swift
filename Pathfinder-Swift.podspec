@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Pathfinder-Swift'
-  s.version          = '0.1.1'
+  s.version          = '0.1.2'
   s.summary          = 'Pathfinder is a simple URL resolver that allow you to add any environment parameters to URLs via UI'
 
   s.description      = <<-DESC
