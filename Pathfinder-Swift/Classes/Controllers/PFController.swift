@@ -14,6 +14,7 @@ final class PFController: UIViewController {
     private let bottomPart = UIView()
     private let searchBar = UISearchBar()
     private let baseListTable = UITableView()
+    private let topButtonsStack = UIStackView()
 
     private let presentationStyleSelectorView = PFPresentationStyleSelectorView(.list)
     private var presentationPagerContainer = UIStackView()
@@ -25,12 +26,17 @@ final class PFController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        if #available(iOS 13.0, *) {
+            overrideUserInterfaceStyle = .light
+        }
         view.backgroundColor = .white
         configureLayout()
         setupTable()
         serverSelector.onSelected = { server in
             Pathfinder.shared.changeEnvironment(to: server)
         }
+        searchBar.delegate = self
 
         NotificationCenter.default.addObserver(
             self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil
@@ -74,7 +80,8 @@ final class PFController: UIViewController {
         }
 
         stackView.addArrangedSubviews(
-            configureTop(),
+            configureTopButtons(),
+            searchBar,
             configureBottom(),
             serverSelector,
             presentationStyleSelectorView,
@@ -129,12 +136,27 @@ final class PFController: UIViewController {
         }
     }
 
-    /// Configuring search and filter sections
-    private func configureTop() -> UIView {
-        let container = UIView()
-        searchBar.delegate = self
-        searchBar.embedIn(container, inset: 10)
-        return container
+    /// Configuring close button
+    private func configureTopButtons() -> UIView {
+        let topContainer = UIView()
+        topButtonsStack.axis = .horizontal
+        let flexibleSpacer = UIView()
+        flexibleSpacer.translatesAutoresizingMaskIntoConstraints = false
+        flexibleSpacer.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 1), for: .horizontal)
+        flexibleSpacer.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 1), for: .vertical)
+        flexibleSpacer.widthAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+        flexibleSpacer.height(56)
+        topButtonsStack.addArrangedSubview(flexibleSpacer)
+
+        let closeButton = UIButton(type: .custom)
+        closeButton.setTitle("Close", for: .normal)
+        closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        closeButton.titleLabel?.textAlignment = .right
+        closeButton.setTitleColor(.black, for: .normal)
+        closeButton.height(56)
+        topButtonsStack.addArrangedSubview(closeButton)
+        topButtonsStack.embedIn(topContainer, hInset: 24)
+        return topContainer
     }
 
     private func configureBottom() -> UIView {
@@ -196,5 +218,9 @@ extension PFController {
 
     @objc private func keyboardWillHide(_ notification: Notification) {
         baseListTable.contentInset = UIEdgeInsetsMake(0, 0, 0, 0)
+    }
+
+    @objc private func closeTapped() {
+        dismiss(animated: true)
     }
 }
